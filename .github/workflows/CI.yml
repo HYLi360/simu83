@@ -1,0 +1,31 @@
+name: Build Wheels
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ['3.10']  # 可加多个版本，如 ['3.8', '3.9', '3.10']
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: PyO3/maturin-action@v1
+        with:
+          python-version: ${{ matrix.python-version }}
+          command: build
+          args: --release
+
+      - name: Upload wheels
+        uses: actions/upload-artifact@v3
+        with:
+          name: wheels-${{ matrix.os }}-py${{ matrix.python-version }}
+          path: target/wheels/*.whl
