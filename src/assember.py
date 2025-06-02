@@ -26,10 +26,10 @@ def transformer(open_file_name: str):
 		"LD SP, HL": 249
 	}
 	opt = {
-		"R8": ["B", "C", "D", "E", "H", "L", "\[HL\]", "A"],  # r8
+		"R8": ["B", "C", "D", "E", "H", "L", r"\[HL\]", "A"],  # r8
 		"R16": ["BC", "DE", "HL", "SP"],  # r16
 		"R16STK": ["BC", "DE", "HL", "AF"],  # r16stk
-		"R16RAM": ["\[BC\]", "\[DE\]", "\[HL\+\]", "\[HL\-\]"],  # r16ram
+		"R16RAM": [r"\[BC\]", r"\[DE\]", r"\[HL\+\]", r"\[HL\-\]"],  # r16ram
 		"COND": ["NZ", "Z", "NC", "C"],  # cond
 		"B3": ["0", "1", "2", "3", "4", "5", "6", "7"],  # bidx
 		"TGT3": ["0x00", "0x08", "0x10", "0x18", "0x20", "0x28", "0x30", "0x38"],  # tgt3
