@@ -302,7 +302,5 @@ def main():
 	writer(open_file_name=args.input, write_file_name=args.output)
 
 
-"""
 if __name__ == "__main__":
-	writer()
-"""
+	main()
