@@ -1,5 +1,4 @@
-"""import sm83_kernel
-import timeit
+import timeit, sm83_kernel
 from rom_reader import reader_gb
 
 rom_path = "/home/hyli360/rust_project/sm83_kernel/src/test.bin"
@@ -14,5 +13,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-"""
-
