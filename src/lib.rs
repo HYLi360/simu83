@@ -6,7 +6,6 @@ use pyo3::{prelude::*, types::PyTuple};
 struct Register {a: u8, b: u8, c: u8, d: u8, e: u8, f: u8, h: u8, l: u8}
 
 #[pyclass]
-#[pyo3(text_signature = "(reg, pc, sp, cyc, ime, ram, rom)")]
 // 构建 Game Boy SoC 结构（含全部寄存器与内存）
 struct SoC {reg: Register, pc: u16, sp: u16, cyc: u128, ime: bool, ram: [u8; 65536], rom: Vec<u8>}
 
@@ -14,12 +13,9 @@ struct SoC {reg: Register, pc: u16, sp: u16, cyc: u128, ime: bool, ram: [u8; 655
 #[pymethods]
 impl SoC {
     // 初始化 SoC 对象，含全部寄存器与内存
-    // 
-    // ::param rom_data_pytuple: 由 Python 端输入的 ROM 数据，只接受元组类型
-    // ::return: SoC 实例
     #[new]
     #[pyo3(signature = (rom_data_pytuple))]
-    fn new(_py: Python<'_>, rom_data_pytuple: &PyTuple) -> PyResult<Self> {
+    fn new(_py: Python, rom_data_pytuple: &PyTuple) -> PyResult<Self> {
         let mut rom_data: Vec<u8> = rom_data_pytuple
             .iter()
             .map(|item| item.extract::<u8>())
@@ -36,7 +32,7 @@ impl SoC {
         })
     }
     // 取寄存器 r8
-    #[pyo3(text_signature = "(r8pos)")]
+    #[pyo3(signature = (r8pos))]
     fn get_r8(&self, r8pos: u8) -> u8 {
         match r8pos {
             0 => self.reg.b,
@@ -51,7 +47,7 @@ impl SoC {
         }
     }
     // 写寄存器 r8
-    #[pyo3(text_signature = "(r8pos, new_r8)")]
+    #[pyo3(signature = (r8pos, new_r8))]
     fn set_r8(&mut self, r8pos: u8, new_r8: u8) {
         match r8pos {
             0 => {self.reg.b = new_r8},
@@ -66,7 +62,7 @@ impl SoC {
         }
     }
     // 取寄存器 r16
-    #[pyo3(text_signature = "(r16pos)")]
+    #[pyo3(signature = (r16pos))]
     fn get_r16(&self, r16pos: u8) -> u16 {
         match r16pos {
             0 => ((self.reg.b as u16) << 8) + (self.reg.c as u16),
@@ -77,7 +73,7 @@ impl SoC {
         }
     }
     // 写寄存器 r16
-    #[pyo3(text_signature = "(r16pos, new_r16)")]
+    #[pyo3(signature = (r16pos, new_r16))]
     fn set_r16(&mut self, r16pos: u8, new_r16: u16) {
         match r16pos {
             0 => {
@@ -100,7 +96,7 @@ impl SoC {
         }
     }
     // 自增 r8
-    #[pyo3(text_signature = "(r8pos)")]
+    #[pyo3(signature = (r8pos))]
     fn r8_inc(&mut self, r8pos: u8) {
         match r8pos {
             0 => self.reg.b += 1,
@@ -115,7 +111,7 @@ impl SoC {
         }
     }
     // 自减 r8
-    #[pyo3(text_signature = "(r8pos)")]
+    #[pyo3(signature = (r8pos))]
     fn r8_dec(&mut self, r8pos: u8) {
         match r8pos {
             0 => self.reg.b -= 1,
@@ -130,7 +126,7 @@ impl SoC {
         }
     }
     // 自增 r16
-    #[pyo3(text_signature = "(r16pos)")]
+    #[pyo3(signature = (r16pos))]
     fn r16_inc(&mut self, r16pos: u8) {
         match r16pos {
                0 => {self.set_r16(0, self.get_r16(0) + 1);},
@@ -141,7 +137,7 @@ impl SoC {
         }
     }
     // 自减 r16
-    #[pyo3(text_signature = "(r16pos)")]
+    #[pyo3(signature = (r16pos))]
     fn r16_dec(&mut self, r16pos: u8) {
         match r16pos {
                0 => {self.set_r16(0, self.get_r16(0) - 1);},
@@ -152,7 +148,7 @@ impl SoC {
         }
     }
     // 设置 bit
-    #[pyo3(text_signature = "(r8pos, b3)")]
+    #[pyo3(signature = (r8pos, b3))]
     fn r8_set(&mut self, r8pos: u8, b3: u8) {
         match r8pos {
             0 => {self.reg.b = self.reg.b | (1 << b3);},
@@ -167,7 +163,7 @@ impl SoC {
         }
     }
     // 清除 bit
-    #[pyo3(text_signature = "(r8pos, b3)")]
+    #[pyo3(signature = (r8pos, b3))]
     fn r8_res(&mut self, r8pos: u8, b3: u8) {
         match r8pos {
             0 => {self.reg.b = self.reg.b & (0xff - (1 << b3));},
@@ -182,7 +178,7 @@ impl SoC {
         }
     }
     // 取 flag
-    #[pyo3(text_signature = "(flag_bit)")]
+    #[pyo3(signature = (flag_bit))]
     fn get_flag(&self, flag_bit: u8) -> u8 {
         match flag_bit {
             4 => {(self.reg.f >> 4) & 1},
@@ -193,7 +189,7 @@ impl SoC {
         }
     }
     // 设 flag
-    #[pyo3(text_signature = "(flag_bit)")]
+    #[pyo3(signature = (flag_bit))]
     fn set_flag(&mut self, flag_bit: u8) {
         match flag_bit {
             4 => {self.reg.f = self.reg.f | (1 << 4)},
@@ -204,7 +200,7 @@ impl SoC {
         }
     }
     // 清 flag
-    #[pyo3(text_signature = "(flag_bit)")]
+    #[pyo3(signature = (flag_bit))]
     fn res_flag(&mut self, flag_bit: u8) {
         match flag_bit {
             4 => self.reg.f = self.reg.f & (0xff - (1 << 4)),
@@ -219,7 +215,7 @@ impl SoC {
         self.sp
     }
     // 设 SP
-    #[pyo3(text_signature = "(new_sp)")]
+    #[pyo3(signature = (new_sp))]
     fn set_sp(&mut self, new_sp: u16) {
         self.sp = new_sp;
     }
@@ -228,7 +224,7 @@ impl SoC {
         self.pc
     }
     // 设 PC
-    #[pyo3(text_signature = "(new_pc)")]
+    #[pyo3(signature = (new_pc))]
     fn set_pc(&mut self, new_pc: u16) {
         self.pc = new_pc;
     }
@@ -249,7 +245,7 @@ impl SoC {
         self.cyc += n;
     }
     // 取 RAM
-    #[pyo3(text_signature = "(addr)")]
+    #[pyo3(signature = (addr))]
     fn ram_read(&self, addr: u16) -> u8 {
         if let Some(&data) = self.ram.get(addr as usize) {
             data
@@ -258,7 +254,7 @@ impl SoC {
         }
     }
     // 写 RAM
-    #[pyo3(text_signature = "(addr, data)")]
+    #[pyo3(signature = (addr, data))]
     fn ram_write(&mut self, addr: u16, data: u8) {
         if self.ram.get(addr as usize).is_some() {
             self.ram[addr as usize] = data;
@@ -271,7 +267,7 @@ impl SoC {
         self.ram
     }
     // 取 ROM
-    #[pyo3(text_signature = "(addr)")]
+    #[pyo3(signature = (addr))]
     fn read_rom(&self, addr: u16) -> u8 {
         if let Some(&data) = self.rom.get(addr as usize) {
             data
@@ -292,7 +288,7 @@ impl SoC {
         self.ime = false;
     }
     // 智能 flag
-    #[pyo3(text_signature = "(num1, num2, n, u8_mode)")]
+    #[pyo3(signature = (num1, num2, n, u8_mode))]
     fn smart_flag(&mut self, num1: u16, num2: u16, n: bool, u8_mode: bool) {
         match u8_mode {
             true => {
@@ -330,7 +326,7 @@ impl SoC {
         }
     }
     // 根据区间提供ROM数据
-    #[pyo3(text_signature = "(length)")]
+    #[pyo3(signature = (length))]
     fn give_opt_code(&self, length: u8) -> Vec<u8> {
         return_instruction(self, length)
     }
@@ -920,7 +916,7 @@ fn ex_inst(soc: &mut SoC, sub_code: u16) {
 
 // 注册到模块
 #[pymodule]
-fn simu83(_py: Python<'_>, m: &PyModule) -> PyResult<()> {m.add_class::<SoC>()?; Ok(())}
+fn simu83(_py: Python, m: &PyModule) -> PyResult<()> {m.add_class::<SoC>()?; Ok(())}
 
 // ===========================================================
 enum R8 {B, C, D, E, H, L, HL, A}
