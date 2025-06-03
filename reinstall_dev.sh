@@ -6,7 +6,7 @@
 set -e  # 遇到错误立即退出
 
 # 1. 此处输入模块名称
-MODULE_NAME="sm83_kernel"
+MODULE_NAME="simu83"
 
 # 2. 清理旧模块（强制卸载）
 echo "正在卸载旧模块: $MODULE_NAME..."
