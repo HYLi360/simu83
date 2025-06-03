@@ -6,12 +6,20 @@ build-backend = "maturin"
 name = "simu83"
 requires-python = ">=3.8"
 classifiers = [
+    "Development Status :: 3 - Alpha",
     "Programming Language :: Rust",
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dynamic = ["version"]
+description = "A simple and open-source simulator kernel of SM83, which is the main CPU in Game Boy."
+license = { text = "MIT" }
+authors = [{ name = "Li", email = "lihuanyu2003@gmail.com" }]
+
 [tool.maturin]
 features = ["pyo3/extension-module"]
 bindings = "pyo3"
+rustc-args = ["-C", "target-cpu=native"]
+strip = true
 generate_pyi = true
+version-file = "Cargo.toml"
