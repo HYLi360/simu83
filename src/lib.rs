@@ -1,4 +1,4 @@
-use pyo3::{prelude::*, types::PyTuple};
+use pyo3::{prelude::*,};
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 
 
@@ -12,15 +12,17 @@ struct SoC {reg: Register, pc: u16, sp: u16, cyc: u128, ime: bool, ram: [u8; 655
 // 全部的实例化方法
 #[pymethods]
 impl SoC {
-    // 初始化 SoC 对象，含全部寄存器与内存
+    /// 初始化 SoC 对象，含全部寄存器与内存
     #[new]
-    #[pyo3(signature = (rom_data_pytuple))]
-    fn new(_py: Python, rom_data_pytuple: &PyTuple) -> PyResult<Self> {
-        let mut rom_data: Vec<u8> = rom_data_pytuple
-            .iter()
-            .map(|item| item.extract::<u8>())
+    #[pyo3(signature = (rom_data))]
+    fn new(_py: Python, rom_data: Vec<PyObject>) -> PyResult<Self> {
+        let mut rom_data_u8: Vec<u8> = rom_data
+            .into_iter()
+            .map(|item| item.extract::<u8>(_py))
             .collect::<PyResult<_>>()?;
-        rom_data.extend(&[0, 0]);
+
+        rom_data_u8.extend(&[0, 0]);
+
         Ok(Self {
             reg: Register { a: 0, f: 0, b: 0, c: 0, d: 0, e: 0, h: 0, l: 0 },
             pc: 0,
@@ -28,9 +30,10 @@ impl SoC {
             cyc: 0,
             ime: false,
             ram: [0; 65536],
-            rom: rom_data,
+            rom: rom_data_u8,
         })
     }
+
     // 取寄存器 r8
     #[pyo3(signature = (r8pos))]
     fn get_r8(&self, r8pos: u8) -> u8 {
@@ -916,7 +919,7 @@ fn ex_inst(soc: &mut SoC, sub_code: u16) {
 
 // 注册到模块
 #[pymodule]
-fn simu83(_py: Python, m: &PyModule) -> PyResult<()> {m.add_class::<SoC>()?; Ok(())}
+fn simu83(_py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {m.add_class::<SoC>()?; Ok(())}
 
 // ===========================================================
 enum R8 {B, C, D, E, H, L, HL, A}
