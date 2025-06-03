@@ -906,7 +906,7 @@ fn ex_inst(soc: &mut SoC, sub_code: u16) {
 
 // 注册到模块
 #[pymodule]
-fn sm83_kernel(_py: Python<'_>, m: &PyModule) -> PyResult<()> {m.add_class::<SoC>()?; Ok(())}
+fn simu83(_py: Python<'_>, m: &PyModule) -> PyResult<()> {m.add_class::<SoC>()?; Ok(())}
 
 
 // ===========================================================
