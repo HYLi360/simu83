@@ -6,6 +6,7 @@ use pyo3::{prelude::*, types::PyTuple};
 struct Register {a: u8, b: u8, c: u8, d: u8, e: u8, f: u8, h: u8, l: u8}
 
 #[pyclass]
+#[pyo3(text_signature = "(reg, pc, sp, cyc, ime, ram, rom)")]
 // 构建 Game Boy SoC 结构（含全部寄存器与内存）
 struct SoC {reg: Register, pc: u16, sp: u16, cyc: u128, ime: bool, ram: [u8; 65536], rom: Vec<u8>}
 
