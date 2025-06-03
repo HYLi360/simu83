@@ -908,7 +908,6 @@ fn ex_inst(soc: &mut SoC, sub_code: u16) {
 #[pymodule]
 fn simu83(_py: Python<'_>, m: &PyModule) -> PyResult<()> {m.add_class::<SoC>()?; Ok(())}
 
-
 // ===========================================================
 enum R8 {B, C, D, E, H, L, HL, A}
 enum R16 {BC, DE, HL, SP}
