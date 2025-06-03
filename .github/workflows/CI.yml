@@ -3,7 +3,7 @@
 #
 #    maturin generate-ci github
 #
-name: simu83
+name: build wheels
 
 on:
   push:
