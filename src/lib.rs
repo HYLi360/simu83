@@ -2,20 +2,21 @@ use pyo3::{prelude::*, types::PyTuple};
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 
 
-/// 定义数据处理对象
+// 定义数据处理对象
 struct Register {a: u8, b: u8, c: u8, d: u8, e: u8, f: u8, h: u8, l: u8}
 
 #[pyclass]
-/// 构建 Game Boy SoC 结构（含全部寄存器与内存）
+#[pyo3(text_signature = "(reg, pc, sp, cyc, ime, ram, rom)")]
+// 构建 Game Boy SoC 结构（含全部寄存器与内存）
 struct SoC {reg: Register, pc: u16, sp: u16, cyc: u128, ime: bool, ram: [u8; 65536], rom: Vec<u8>}
 
-/// 全部的实例化方法
+// 全部的实例化方法
 #[pymethods]
 impl SoC {
-    /// 初始化 SoC 对象，含全部寄存器与内存
-    /// 
-    /// ::param rom_data_pytuple: 由 Python 端输入的 ROM 数据，只接受元组类型
-    /// ::return: SoC 实例
+    // 初始化 SoC 对象，含全部寄存器与内存
+    // 
+    // ::param rom_data_pytuple: 由 Python 端输入的 ROM 数据，只接受元组类型
+    // ::return: SoC 实例
     #[new]
     #[pyo3(signature = (rom_data_pytuple))]
     fn new(_py: Python<'_>, rom_data_pytuple: &PyTuple) -> PyResult<Self> {
@@ -34,11 +35,8 @@ impl SoC {
             rom: rom_data,
         })
     }
-    /// 取寄存器 r8
-    /// 
-    /// ::param r8pos: 寄存器编号，从 0 到 7 分别是 b c d e h l f a
-    /// ::return: 寄存器的值
-    #[pyo3(signature = (r8pos))]
+    // 取寄存器 r8
+    #[pyo3(text_signature = "(r8pos)")]
     fn get_r8(&self, r8pos: u8) -> u8 {
         match r8pos {
             0 => self.reg.b,
@@ -52,10 +50,8 @@ impl SoC {
             _ => panic!("非法的寄存器位置：{r8pos}")
         }
     }
-    /// 写寄存器 r8
-    /// 
-    /// ::param r8pos: 寄存器编号，从 0 到 7 分别是 b c d e h l f a
-    #[pyo3(signature = (r8pos, new_r8))]
+    // 写寄存器 r8
+    #[pyo3(text_signature = "(r8pos, new_r8)")]
     fn set_r8(&mut self, r8pos: u8, new_r8: u8) {
         match r8pos {
             0 => {self.reg.b = new_r8},
@@ -69,11 +65,8 @@ impl SoC {
             _ => panic!("非法的寄存器位置: {}", r8pos),
         }
     }
-    /// 取寄存器 r16
-    /// 
-    /// ::param r16pos: r8 组合寄存器（r16）的编号，从 0 到 3 分别是 bc de hl af
-    /// ::return: 寄存器的值
-    #[pyo3(signature = (r16pos))]
+    // 取寄存器 r16
+    #[pyo3(text_signature = "(r16pos)")]
     fn get_r16(&self, r16pos: u8) -> u16 {
         match r16pos {
             0 => ((self.reg.b as u16) << 8) + (self.reg.c as u16),
@@ -83,10 +76,8 @@ impl SoC {
             _ => panic!("非法的寄存器位置: {}", r16pos),
         }
     }
-    /// 写寄存器 r16
-    /// 
-    /// ::param r16pos: r8 组合寄存器（r16）的编号，从 0 到 3 分别是 bc de hl af
-    #[pyo3(signature = (r16pos, new_r16))]
+    // 写寄存器 r16
+    #[pyo3(text_signature = "(r16pos, new_r16)")]
     fn set_r16(&mut self, r16pos: u8, new_r16: u16) {
         match r16pos {
             0 => {
@@ -108,10 +99,8 @@ impl SoC {
             _ => panic!("非法的寄存器位置: {}", r16pos),
         }
     }
-    /// 自增 r8
-    ///
-    /// ::param r8pos: 寄存器编号，从 0 到 7 分别是 b c d e h l f a
-    #[pyo3(signature = (r8pos))]
+    // 自增 r8
+    #[pyo3(text_signature = "(r8pos)")]
     fn r8_inc(&mut self, r8pos: u8) {
         match r8pos {
             0 => self.reg.b += 1,
@@ -125,10 +114,8 @@ impl SoC {
             _ => panic!("非法的寄存器位置: {}", r8pos),
         }
     }
-    /// 自减 r8
-    ///
-    /// ::param r8pos: 寄存器编号，从 0 到 7 分别是 b c d e h l f a
-    #[pyo3(signature = (r8pos))]
+    // 自减 r8
+    #[pyo3(text_signature = "(r8pos)")]
     fn r8_dec(&mut self, r8pos: u8) {
         match r8pos {
             0 => self.reg.b -= 1,
@@ -142,10 +129,8 @@ impl SoC {
             _ => panic!("非法的寄存器位置: {}", r8pos),
         }
     }
-    /// 自增 r16
-    /// 
-    /// ::param r16pos: r8 组合寄存器（r16）的编号，从从 0 到 3 分别是 bc de hl af
-    #[pyo3(signature = (r16pos))]
+    // 自增 r16
+    #[pyo3(text_signature = "(r16pos)")]
     fn r16_inc(&mut self, r16pos: u8) {
         match r16pos {
                0 => {self.set_r16(0, self.get_r16(0) + 1);},
@@ -155,10 +140,8 @@ impl SoC {
                _ => panic!("非法的寄存器位置: {}", r16pos),
         }
     }
-    /// 自减 r16
-    /// 
-    /// ::param r16pos: r8 组合寄存器（r16）的编号，从从 0 到 3 分别是 bc de hl af
-    #[pyo3(signature = (r16pos))]
+    // 自减 r16
+    #[pyo3(text_signature = "(r16pos)")]
     fn r16_dec(&mut self, r16pos: u8) {
         match r16pos {
                0 => {self.set_r16(0, self.get_r16(0) - 1);},
@@ -168,10 +151,8 @@ impl SoC {
                _ => panic!("非法的寄存器位置: {}", r16pos),
         }
     }
-    /// 设置 bit
-    ///
-    /// ::param r8pos: 寄存器编号，从 0 到 7 分别是 b c d e h l f a
-    #[pyo3(signature = (r8pos, b3))]
+    // 设置 bit
+    #[pyo3(text_signature = "(r8pos, b3)")]
     fn r8_set(&mut self, r8pos: u8, b3: u8) {
         match r8pos {
             0 => {self.reg.b = self.reg.b | (1 << b3);},
@@ -185,11 +166,8 @@ impl SoC {
             _ => panic!("非法的寄存器位置: {}", r8pos),
         }
     }
-    /// 清除 bit
-    ///
-    /// ::param r8pos: 寄存器编号，从 0 到 7 分别是 b c d e h l f a
-    /// ::param b3: r8 的某一位，第 7 位在左侧
-    #[pyo3(signature = (r8pos, b3))]
+    // 清除 bit
+    #[pyo3(text_signature = "(r8pos, b3)")]
     fn r8_res(&mut self, r8pos: u8, b3: u8) {
         match r8pos {
             0 => {self.reg.b = self.reg.b & (0xff - (1 << b3));},
@@ -203,10 +181,8 @@ impl SoC {
             _ => panic!("非法的寄存器位置: {}", r8pos),
         }
     }
-    /// 取 flag
-    /// 
-    /// ::param flag_bit: 标志寄存器的比特位，从 7 到 4 分别是 Z/N/H/C
-    #[pyo3(signature = (flag_bit))]
+    // 取 flag
+    #[pyo3(text_signature = "(flag_bit)")]
     fn get_flag(&self, flag_bit: u8) -> u8 {
         match flag_bit {
             4 => {(self.reg.f >> 4) & 1},
@@ -216,10 +192,8 @@ impl SoC {
             _ => panic!("非法的 flag 位: {}", flag_bit),
         }
     }
-    /// 设 flag
-    /// 
-    /// ::param flag_bit: 标志寄存器的比特位，从 7 到 4 分别是 Z/N/H/C
-    #[pyo3(signature = (flag_bit))]
+    // 设 flag
+    #[pyo3(text_signature = "(flag_bit)")]
     fn set_flag(&mut self, flag_bit: u8) {
         match flag_bit {
             4 => {self.reg.f = self.reg.f | (1 << 4)},
@@ -229,10 +203,8 @@ impl SoC {
             _ => panic!("非法的 flag 位: {}", flag_bit),
         }
     }
-    /// 清 flag
-    /// 
-    /// ::param flag_bit: 标志寄存器的比特位，从 7 到 4 分别是 Z/N/H/C
-    #[pyo3(signature = (flag_bit))]
+    // 清 flag
+    #[pyo3(text_signature = "(flag_bit)")]
     fn res_flag(&mut self, flag_bit: u8) {
         match flag_bit {
             4 => self.reg.f = self.reg.f & (0xff - (1 << 4)),
@@ -242,55 +214,42 @@ impl SoC {
             _ => panic!("非法的 flag 位: {}", flag_bit),
         }
     }
-    /// 取 SP
-    /// 
-    /// ::return: sp 的值
+    // 取 SP
     fn get_sp(&self) -> u16 {
         self.sp
     }
-    /// 设 SP
-    /// 
-    /// ::param new_sp: 新 sp 值
-    #[pyo3(signature = (new_sp))]
+    // 设 SP
+    #[pyo3(text_signature = "(new_sp)")]
     fn set_sp(&mut self, new_sp: u16) {
         self.sp = new_sp;
     }
-    /// 取 PC
-    /// 
-    /// ::return: pc 的值
+    // 取 PC
     fn get_pc(&self) -> u16 {
         self.pc
     }
-    /// 设 PC
-    /// 
-    /// ::param new_sp: 新 pc 值
-    #[pyo3(signature = (new_pc))]
+    // 设 PC
+    #[pyo3(text_signature = "(new_pc)")]
     fn set_pc(&mut self, new_pc: u16) {
         self.pc = new_pc;
     }
-    /// 增加 PC
+    // 增加 PC
     fn pc_inc(&mut self, n: u16) {
         self.pc += n;
     }
-    /// 减少 PC
+    // 减少 PC
     fn pc_dec(&mut self, n: u16) {
         self.pc -= n;
     }
-    /// 取 CYC
-    /// 
-    /// ::return: cyc 的值
+    // 取 CYC
     fn get_cyc(&self) -> u128 {
         self.cyc
     }
-    /// 增加 CYC
+    // 增加 CYC
     fn cyc_inc(&mut self, n: u128) {
         self.cyc += n;
     }
-    /// 取 RAM
-    /// 
-    /// ::param addr: 内存地址
-    /// ::return: RAM[addr] 的值
-    #[pyo3(signature = (addr))]
+    // 取 RAM
+    #[pyo3(text_signature = "(addr)")]
     fn ram_read(&self, addr: u16) -> u8 {
         if let Some(&data) = self.ram.get(addr as usize) {
             data
@@ -298,8 +257,8 @@ impl SoC {
             panic!("内存索引越界！合法范围：0-65535，您索引的地址：{}", addr)
         }
     }
-    /// 写 RAM
-    #[pyo3(signature = (addr, data))]
+    // 写 RAM
+    #[pyo3(text_signature = "(addr, data)")]
     fn ram_write(&mut self, addr: u16, data: u8) {
         if self.ram.get(addr as usize).is_some() {
             self.ram[addr as usize] = data;
@@ -307,17 +266,12 @@ impl SoC {
             panic!("内存索引越界！合法范围：0-65535，您索引的地址：{}", addr)
         }
     }
-    /// 读取全部 RAM
-    /// 
-    /// ::return: RAM data
+    // 读取全部 RAM
     fn ram_data(&self) -> [u8; 65536] {
         self.ram
     }
-    /// 取 ROM
-    /// 
-    /// ::param addr: ROM 地址
-    /// ::return: ROM[addr] 的值
-    #[pyo3(signature = (addr))]
+    // 取 ROM
+    #[pyo3(text_signature = "(addr)")]
     fn read_rom(&self, addr: u16) -> u8 {
         if let Some(&data) = self.rom.get(addr as usize) {
             data
@@ -325,27 +279,20 @@ impl SoC {
             panic!("ROM 索引越界！您索引的地址：{}", addr)
         }
     }
-    /// halt 信号发出
-    /// 
-    /// ::return: 是否遇到halt
+    // halt 信号发出
     fn halt(&self) -> bool {
         self.read_rom(self.get_pc()) == 0x76
     }
-    /// 启用 IME
+    // 启用 IME
     fn set_ime(&mut self) {
         self.ime = true;
     }
-    /// 禁止 IME
+    // 禁止 IME
     fn res_ime(&mut self) {
         self.ime = false;
     }
-    /// 智能 flag
-    /// 
-    /// ::param num1: 操作数1
-    /// ::param num2: 操作数2
-    /// ::param n: 减法模式
-    /// ::param u8_mode: 是否使用8位计算模式
-    #[pyo3(signature = (num1, num2, n, u8_mode))]
+    // 智能 flag
+    #[pyo3(text_signature = "(num1, num2, n, u8_mode)")]
     fn smart_flag(&mut self, num1: u16, num2: u16, n: bool, u8_mode: bool) {
         match u8_mode {
             true => {
@@ -382,15 +329,13 @@ impl SoC {
             }
         }
     }
-    /// 根据区间提供ROM数据
-    /// 
-    /// return: ROM[PC:PC+length]
-    #[pyo3(signature = (length))]
+    // 根据区间提供ROM数据
+    #[pyo3(text_signature = "(length)")]
     fn give_opt_code(&self, length: u8) -> Vec<u8> {
         return_instruction(self, length)
     }
 
-    /// 查看寄存器状况
+    // 查看寄存器状况
     fn disp(&self) {
         println!("+----------- GameBoy SM83 Register Display -----------+");
         println!("|Flag Register: {} - {} - {} - {}               IME: {}|", 
@@ -416,7 +361,7 @@ impl SoC {
         println!("+----------ROM Next 3 Bytes [0x{0:02x} 0x{1:02x} 0x{2:02x}]----------+\n",
                  self.read_rom(self.get_pc()), self.read_rom(self.get_pc()+1), self.read_rom(self.get_pc()+2),)
     }
-    /// 显示寄存器 r8
+    // 显示寄存器 r8
     fn disp_r8(&self) {
         println!("============ GameBoy SM83 R8B Display ============");
         println!("Flag Register: {} - {} - {} - {}", 
@@ -428,12 +373,12 @@ impl SoC {
         println!("D: {0:08b}, E: {1:08b}, H: {2:08b}, L: {3:08b}\n", self.reg.d, self.reg.e, self.reg.h, self.reg.l);
     }
 
-    /// 执行下一个指令
+    // 执行下一个指令
     fn one_step(&mut self) {process_by_step(self);}
 }
 
 
-/// 调配函数
+// 调配函数
 fn return_instruction(soc: &SoC, length: u8) -> Vec<u8> {
     let mut opt_code = Vec::new();
     let start_point = soc.get_pc();
@@ -973,11 +918,11 @@ fn ex_inst(soc: &mut SoC, sub_code: u16) {
     }
 }
 
-/// 注册到模块
+// 注册到模块
 #[pymodule]
 fn simu83(_py: Python<'_>, m: &PyModule) -> PyResult<()> {m.add_class::<SoC>()?; Ok(())}
 
-/// ===========================================================
+// ===========================================================
 enum R8 {B, C, D, E, H, L, HL, A}
 enum R16 {BC, DE, HL, SP}
 enum R16STK {BC, DE, HL, AF}
@@ -1037,12 +982,12 @@ fn set_r8_by_idx(soc: &mut SoC, r8: &R8, r8_value: u8) {
     }
 }
 
-/// ===========================================================
-/// 其他辅助函数
+// ===========================================================
+// 其他辅助函数
 fn b8x2_le(b8a: u16, b8b: u16) -> u16 {(b8b << 8) + b8a}
 fn b8x2(b8a: u16, b8b: u16) -> u16 {(b8a << 8) + b8b}
 
-/// ld_r16ram_a
+// ld_r16ram_a
 fn ld_r16ram_a(soc: &mut SoC, r16ram: R16RAM) {
     let addr: u16 = match r16ram {
         R16RAM::BC  => {soc.get_r16(0)},
@@ -1056,7 +1001,7 @@ fn ld_r16ram_a(soc: &mut SoC, r16ram: R16RAM) {
     soc.pc_inc(1);
     soc.cyc_inc(2);
 }
-/// inc_r16
+// inc_r16
 fn inc_r16(soc: &mut SoC, r16: R16) {
     match r16 {
         R16::BC => {soc.r16_inc(0)},
@@ -1066,7 +1011,7 @@ fn inc_r16(soc: &mut SoC, r16: R16) {
     soc.pc_inc(1);
     soc.cyc_inc(2);
 }
-/// add_hl_r16
+// add_hl_r16
 fn add_hl_r16(soc: &mut SoC, r16: R16) {
     let add1 = soc.get_r16(2);
     let add2 = get_r16_by_idx(soc, r16);
@@ -1077,7 +1022,7 @@ fn add_hl_r16(soc: &mut SoC, r16: R16) {
     soc.pc_inc(1);
     soc.cyc_inc(2);
 }
-/// ld_a_r16ram
+// ld_a_r16ram
 fn ld_a_r16ram(soc: &mut SoC, r16ram: R16RAM) {
     let addr: u16 = match r16ram {
         R16RAM::BC  => {soc.get_r16(0)},
@@ -1091,7 +1036,7 @@ fn ld_a_r16ram(soc: &mut SoC, r16ram: R16RAM) {
     soc.pc_inc(1);
     soc.cyc_inc(2);
 }
-/// dec_r16
+// dec_r16
 fn dec_r16(soc: &mut SoC, r16: R16) {
     match r16 {
         R16::BC => {soc.r16_dec(0)},
@@ -1101,7 +1046,7 @@ fn dec_r16(soc: &mut SoC, r16: R16) {
     soc.pc_inc(1);
     soc.cyc_inc(2);
 }
-/// inc_r8
+// inc_r8
 fn inc_r8(soc: &mut SoC, r8: R8) {
     let r8_value = get_r8_by_idx(soc, &r8);
     set_r8_by_idx(soc, &r8, r8_value + 1);
@@ -1111,7 +1056,7 @@ fn inc_r8(soc: &mut SoC, r8: R8) {
     soc.pc_inc(1);
     soc.cyc_inc(1);
 }
-/// dec_r8
+// dec_r8
 fn dec_r8(soc: &mut SoC, r8: R8) {
     let r8_value = get_r8_by_idx(soc, &r8);
     set_r8_by_idx(soc, &r8, r8_value - 1);
@@ -1121,7 +1066,7 @@ fn dec_r8(soc: &mut SoC, r8: R8) {
     soc.pc_inc(1);
     soc.cyc_inc(1);
 }
-/// ld_r8_r8
+// ld_r8_r8
 fn ld_r8_r8(soc: &mut SoC, r8d: R8, r8s: R8) {
     let r8_value = get_r8_by_idx(soc, &r8s);
     set_r8_by_idx(soc, &r8d, r8_value);
@@ -1177,7 +1122,7 @@ fn alu_a_r8(soc: &mut SoC, r8: R8, alu3: ALU3) {
     soc.pc_inc(1);
     match r8 {R8::HL => {soc.cyc_inc(2);} _ => {soc.cyc_inc(1);}};
 }
-/// ret_cond
+// ret_cond
 fn ret_cond(soc: &mut SoC, cond: COND) {
     if get_cond_by_idx(soc, cond) == true {
         let lo8 = soc.ram_read(soc.get_sp());
@@ -1191,7 +1136,7 @@ fn ret_cond(soc: &mut SoC, cond: COND) {
         soc.cyc_inc(2);
     }
 }
-/// pop_r16stk
+// pop_r16stk
 fn pop_r16stk(soc: &mut SoC, r16stk: R16STK) {
     let lo8 = soc.ram_read(soc.get_sp());
     if soc.get_sp() != 0xfffe {soc.set_sp(soc.get_sp() + 1);};
@@ -1206,7 +1151,7 @@ fn pop_r16stk(soc: &mut SoC, r16stk: R16STK) {
     soc.cyc_inc(3);
     soc.pc_inc(1);
 }
-/// push_r16stk
+// push_r16stk
 fn push_r16stk(soc: &mut SoC, r16stk: R16STK) {
     let new_r16 = get_r16stk_by_idx(soc, r16stk);
     let hi8 = (new_r16 >> 8) as u8;
@@ -1218,19 +1163,19 @@ fn push_r16stk(soc: &mut SoC, r16stk: R16STK) {
     soc.cyc_inc(4);
     soc.pc_inc(1);
 }
-/// rst_tgt3
+// rst_tgt3
 fn rst_tgt3(soc: &mut SoC, tgt3: TGT3) {
     soc.pc_inc(tgt3 as u16);
     soc.cyc_inc(4);
 }
-/// ld_r8_n8
+// ld_r8_n8
 fn ld_r8_n8(soc: &mut SoC, r8: R8, n8: u16) {
     let n8 = n8 as u8;
     set_r8_by_idx(soc, &r8, n8);
     soc.pc_inc(2);
     if r8 as u8 == 6 {soc.cyc_inc(3)} else {soc.cyc_inc(2);};
 }
-/// jr_cond_e8
+// jr_cond_e8
 fn jr_cond_e8(soc: &mut SoC, cond: COND, e8: u16) {
     let e8 = e8 as i8;
     if get_cond_by_idx(soc, cond) == true {
@@ -1241,7 +1186,7 @@ fn jr_cond_e8(soc: &mut SoC, cond: COND, e8: u16) {
         soc.cyc_inc(2);
     }
 }
-/// ld_r16_n16
+// ld_r16_n16
 fn ld_r16_n16(soc: &mut SoC, r16: R16, n16: u16) {
     match r16 {
         R16::BC => {soc.set_r16(0, n16);},
@@ -1252,7 +1197,7 @@ fn ld_r16_n16(soc: &mut SoC, r16: R16, n16: u16) {
     soc.cyc_inc(3);
     soc.pc_inc(3);
 }
-/// jp_cond_a16
+// jp_cond_a16
 fn jp_cond_a16(soc: &mut SoC, cond:COND, a16: u16) {
     if get_cond_by_idx(soc, cond) == true {
         soc.set_pc(a16);
@@ -1262,7 +1207,7 @@ fn jp_cond_a16(soc: &mut SoC, cond:COND, a16: u16) {
         soc.cyc_inc(3);
     }
 }
-/// call_cond_a16
+// call_cond_a16
 fn call_cond_a16(soc: &mut SoC, cond:COND, a16: u16) {
     if get_cond_by_idx(soc, cond) == true {
         let new_pc = soc.get_pc() + 3;
@@ -1277,7 +1222,7 @@ fn call_cond_a16(soc: &mut SoC, cond:COND, a16: u16) {
         soc.cyc_inc(3);
     }
 }
-/// bop_r8
+// bop_r8
 fn bop_r8(soc: &mut SoC, r8: R8, bop3: BOP3) {
     let r8_value = get_r8_by_idx(soc, &r8);
     let c: u8;
@@ -1327,7 +1272,7 @@ fn bop_r8(soc: &mut SoC, r8: R8, bop3: BOP3) {
     soc.pc_inc(2);
     if (r8 as u8) == 6 {soc.cyc_inc(4)} else {soc.cyc_inc(2);}
 }
-/// bit_r8_b3
+// bit_r8_b3
 fn bit_r8_b3(soc: &mut SoC, r8: R8, b3: u8) {
     let r8_value = get_r8_by_idx(soc, &r8);
     if r8_value & (1 << b3) == 0 {
@@ -1340,26 +1285,26 @@ fn bit_r8_b3(soc: &mut SoC, r8: R8, b3: u8) {
     soc.pc_inc(2);
     if (r8 as u8) == 6 {soc.cyc_inc(3);} else {soc.cyc_inc(2);}
 }
-/// res_r8_b3
+// res_r8_b3
 fn res_r8_b3(soc: &mut SoC, r8: R8, b3: u8) {
     let r8_value = get_r8_by_idx(soc, &r8);
     set_r8_by_idx(soc, &r8, r8_value & (0xff - (1 << b3))); 
     soc.pc_inc(2);
     if (r8 as u8) == 6 {soc.cyc_inc(4);} else {soc.cyc_inc(2);}
 }
-/// set_r8_b3
+// set_r8_b3
 fn set_r8_b3(soc: &mut SoC, r8: R8, b3: u8) {
     let r8_value = get_r8_by_idx(soc, &r8);
     set_r8_by_idx(soc, &r8, r8_value | (0xff - (1 << b3))); 
     soc.pc_inc(2);
     if (r8 as u8) == 6 {soc.cyc_inc(4);} else {soc.cyc_inc(2);}
 }
-/// nop
+// nop
 fn nop(soc: &mut SoC) {
     soc.pc_inc(1);
     soc.cyc_inc(1);
 }
-/// rlca
+// rlca
 fn rlca(soc: &mut SoC) {
     let a_value = soc.get_r8(7);
     let c = a_value >> 7;
@@ -1372,7 +1317,7 @@ fn rlca(soc: &mut SoC) {
     soc.pc_inc(1);
     soc.cyc_inc(1);
 }
-/// rrca
+// rrca
 fn rrca(soc: &mut SoC) {
     let a_value = soc.get_r8(7);
     let c = a_value & 1;
@@ -1385,7 +1330,7 @@ fn rrca(soc: &mut SoC) {
     soc.pc_inc(1);
     soc.cyc_inc(1);
 }
-/// rla
+// rla
 fn rla(soc: &mut SoC) {
     let a_value = soc.get_r8(7);
     let c = a_value >> 7;
@@ -1398,7 +1343,7 @@ fn rla(soc: &mut SoC) {
     soc.pc_inc(1);
     soc.cyc_inc(1);
 }
-/// rra
+// rra
 fn rra(soc: &mut SoC) {
     let a_value = soc.get_r8(7);
     let c = a_value & 1;
@@ -1411,7 +1356,7 @@ fn rra(soc: &mut SoC) {
     soc.pc_inc(1);
     soc.cyc_inc(1);
 }
-/// daa
+// daa
 fn daa(soc: &mut SoC) {
     let a_value = soc.get_r8(7);
     let res;
@@ -1431,7 +1376,7 @@ fn daa(soc: &mut SoC) {
     soc.pc_inc(1);
     soc.cyc_inc(1);
 }
-/// scf
+// scf
 fn scf(soc: &mut SoC) {
     soc.res_flag(6);
     soc.res_flag(5);
@@ -1439,7 +1384,7 @@ fn scf(soc: &mut SoC) {
     soc.pc_inc(1);
     soc.cyc_inc(1);
 }
-/// cpl
+// cpl
 fn cpl(soc: &mut SoC) {
     soc.set_r8(7, soc.get_r8(7) ^ 0xff);
     soc.set_flag(6);
@@ -1447,7 +1392,7 @@ fn cpl(soc: &mut SoC) {
     soc.pc_inc(1);
     soc.cyc_inc(1);
 }
-/// ccf
+// ccf
 fn ccf(soc: &mut SoC) {
     let c = soc.get_flag(4);
     if c == 1 {soc.res_flag(4);}
@@ -1457,7 +1402,7 @@ fn ccf(soc: &mut SoC) {
     soc.pc_inc(1);
     soc.cyc_inc(1);
 }
-/// ret
+// ret
 fn ret(soc: &mut SoC) {
     let lo8 = soc.ram_read(soc.get_sp());
     if soc.get_sp() != 0xfffe {soc.set_sp(soc.get_sp() + 1);}
@@ -1466,25 +1411,25 @@ fn ret(soc: &mut SoC) {
     soc.set_pc(lo8 as u16 + ((hi8 as u16) << 8));
     soc.cyc_inc(4);
 }
-/// jp_hl
+// jp_hl
 fn jp_hl(soc: &mut SoC) {
     soc.set_pc(soc.get_r16(2));
     soc.pc_inc(1);
     soc.cyc_inc(1);
 }
-/// di
+// di
 fn di(soc: &mut SoC) {
     soc.res_ime();
     soc.pc_inc(1);
     soc.cyc_inc(1);
 }
-/// ei
+// ei
 fn ei(soc: &mut SoC) {
     soc.set_ime();
     soc.pc_inc(1);
     soc.cyc_inc(1);
 }
-/// reti
+// reti
 fn reti(soc: &mut SoC) {
     soc.set_ime();
     let lo8 = soc.ram_read(soc.get_sp());
@@ -1494,43 +1439,43 @@ fn reti(soc: &mut SoC) {
     soc.set_pc(lo8 as u16 + ((hi8 as u16) << 8));
     soc.cyc_inc(4);
 }
-/// ld_sp_hl
+// ld_sp_hl
 fn ld_sp_hl(soc: &mut SoC) {
     soc.set_sp(soc.get_r16(2));
     soc.pc_inc(1);
     soc.cyc_inc(2);
 }
-/// jr_e8
+// jr_e8
 fn jr_e8(soc: &mut SoC, e8: i8) {
     let res = (soc.get_pc() as i32 + e8 as i32)as u16;
     soc.set_pc(res);
     soc.cyc_inc(3);
 }
-/// ldh_a8_a
+// ldh_a8_a
 fn ldh_a8_a(soc: &mut SoC, a8: u8) {
     soc.ram_write(0xff00 + (a8 as u16), soc.get_r8(7));
     soc.pc_inc(2);
     soc.cyc_inc(3);
 }
-/// ldh_a_a8
+// ldh_a_a8
 fn ldh_a_a8(soc: &mut SoC, a8: u8) {
     soc.set_r8(7, soc.ram_read(0xff00 + (a8 as u16)));
     soc.pc_inc(2);
     soc.cyc_inc(3);
 }
-/// ldh_c_a
+// ldh_c_a
 fn ldh_c_a(soc: &mut SoC) {
     soc.ram_write(0xff00 + (soc.get_r8(1) as u16), soc.get_r8(7));
     soc.pc_inc(1);
     soc.cyc_inc(2);
 }
-/// ldh_a_c
+// ldh_a_c
 fn ldh_a_c(soc: &mut SoC) {
     soc.set_r8(7, soc.ram_read(0xff00 + (soc.get_r8(1) as u16)));
     soc.pc_inc(1);
     soc.cyc_inc(2);
 }
-/// alu_a_n8
+// alu_a_n8
 fn alu_a_n8(soc: &mut SoC, n8: u16, alu3: ALU3) {
     match alu3 {
         ALU3::ADD => {
@@ -1579,7 +1524,7 @@ fn alu_a_n8(soc: &mut SoC, n8: u16, alu3: ALU3) {
     soc.pc_inc(1);
     soc.cyc_inc(2);
 }
-/// add_sp_e8
+// add_sp_e8
 fn add_sp_e8(soc: &mut SoC, e8: i8) {
     let sp = soc.get_sp() as i32;
     let e8 = e8 as i32;
@@ -1597,7 +1542,7 @@ fn add_sp_e8(soc: &mut SoC, e8: i8) {
     soc.pc_inc(2);
     soc.cyc_inc(4);
 }
-/// ld_hl_sp_e8
+// ld_hl_sp_e8
 fn ld_hl_sp_e8(soc: &mut SoC, e8: i8) {
     let sp = soc.get_sp() as i32;
     let e8 = e8 as i32;
@@ -1615,19 +1560,19 @@ fn ld_hl_sp_e8(soc: &mut SoC, e8: i8) {
     soc.pc_inc(2);
     soc.cyc_inc(3);
 }
-/// ld_a16_sp
+// ld_a16_sp
 fn ld_a16_sp(soc: &mut SoC, a16: u16) {
     soc.ram_write(a16, soc.get_sp() as u8);
     soc.ram_write(a16 + 1, (soc.get_sp() >> 8) as u8);
     soc.pc_inc(3);
     soc.cyc_inc(5);
 }
-/// jp_a16
+// jp_a16
 fn jp_a16(soc: &mut SoC, a16: u16) {
     soc.set_pc(a16);
     soc.cyc_inc(4);
 }
-/// call_a16
+// call_a16
 fn call_a16(soc: &mut SoC, a16: u16) {
     let pc = soc.get_pc() + 3;
     if soc.get_sp() != 0xfffe {soc.set_sp(soc.get_sp()-1);}
@@ -1637,23 +1582,23 @@ fn call_a16(soc: &mut SoC, a16: u16) {
     soc.set_pc(a16);
     soc.cyc_inc(6);
 }
-/// ld_a16_a
+// ld_a16_a
 fn ld_a16_a(soc: &mut SoC, a16: u16) {
     soc.ram_write(a16, soc.get_r8(7));
     soc.pc_inc(3);
     soc.cyc_inc(4);
 }
-/// ld_a_a16
+// ld_a_a16
 fn ld_a_a16(soc: &mut SoC, a16: u16) {
     soc.set_r8(7, soc.ram_read(a16));
     soc.pc_inc(3);
     soc.cyc_inc(4);
 }
-/// halt
+// halt
 fn halt(_soc: &mut SoC) {
     /* 此处没有代码 */
 }
-/// stop
+// stop
 fn stop(soc: &mut SoC) {
     soc.pc_inc(2);
     soc.cyc_inc(1);
