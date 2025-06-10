@@ -204,9 +204,9 @@ def transformer(open_file_name: str):
 			stop = re.search(pattern_stop, new_line)
 			if stop is not None:
 				if stop.group(1)[0:2] == "0X":
-					res = res + b"\x10" + int(call_cond_a16.group(1), 16).to_bytes(length=1)
+					res = res + b"\x10" + int(stop.group(1), 16).to_bytes(length=1)
 				else:
-					res = res + b"\x10" + int(call_cond_a16.group(1), 10).to_bytes(length=1)
+					res = res + b"\x10" + int(stop.group(1), 10).to_bytes(length=1)
 				continue
 			jr_e8 = re.search(pattern_jr_e8, new_line)
 			if jr_e8 is not None:

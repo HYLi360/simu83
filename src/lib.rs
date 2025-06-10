@@ -376,6 +376,11 @@ impl SoC {
 }
 
 
+// 注册到模块
+#[pymodule]
+fn simu83(_py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {m.add_class::<SoC>()?; Ok(())}
+
+// ===========================================================
 // 调配函数
 fn return_instruction(soc: &SoC, length: u8) -> Vec<u8> {
     let mut opt_code = Vec::new();
@@ -916,11 +921,6 @@ fn ex_inst(soc: &mut SoC, sub_code: u16) {
     }
 }
 
-// 注册到模块
-#[pymodule]
-fn simu83(_py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {m.add_class::<SoC>()?; Ok(())}
-
-// ===========================================================
 enum R8 {B, C, D, E, H, L, HL, A}
 enum R16 {BC, DE, HL, SP}
 enum R16STK {BC, DE, HL, AF}
