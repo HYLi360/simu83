@@ -10,7 +10,7 @@ MODULE_NAME="simu83"
 
 # 2. 清理旧模块（强制卸载）
 echo "正在卸载旧模块: $MODULE_NAME..."
-pip uninstall -y "$MODULE_NAME" || echo "未安装旧模块（无需卸载）"
+uv pip uninstall "$MODULE_NAME" || echo "未安装旧模块（无需卸载）"
 
 # 3. 清理可能的残留文件（如 .pyc 缓存）
 echo "清理 Python 缓存..."
@@ -23,4 +23,4 @@ maturin develop --release
 
 # 5. 验证安装
 echo "验证模块是否可导入..."
-python -c "import $MODULE_NAME; print('操作成功完成！')"
+python3 -c "import $MODULE_NAME; print('操作成功完成！')"

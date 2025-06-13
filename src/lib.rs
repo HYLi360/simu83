@@ -376,11 +376,6 @@ impl SoC {
 }
 
 
-// 注册到模块
-#[pymodule]
-fn simu83(_py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {m.add_class::<SoC>()?; Ok(())}
-
-// ===========================================================
 // 调配函数
 fn return_instruction(soc: &SoC, length: u8) -> Vec<u8> {
     let mut opt_code = Vec::new();
@@ -401,7 +396,7 @@ fn process_by_step(soc: &mut SoC) {
     ];
     match code[0] as u8 {
         0x00 => {nop(soc)},
-        0x01 => {ld_r16_n16(soc, R16::BC, b8x2(code[1], code[2]))},
+        0x01 => {ld_r16_n16(soc, R16::BC, b8x2_le(code[1], code[2]))},
         0x02 => {ld_r16ram_a(soc, R16RAM::BC)},
         0x03 => {inc_r16(soc, R16::BC)},
         0x04 => {inc_r8(soc, R8::B)},
@@ -417,7 +412,7 @@ fn process_by_step(soc: &mut SoC) {
         0x0E => {ld_r8_n8(soc, R8::C, code[1])},
         0x0F => {rrca(soc)},
         0x10 => {stop(soc)},
-        0x11 => {ld_r16_n16(soc, R16::DE, b8x2(code[1], code[2]))},
+        0x11 => {ld_r16_n16(soc, R16::DE, b8x2_le(code[1], code[2]))},
         0x12 => {ld_r16ram_a(soc, R16RAM::DE)},
         0x13 => {inc_r16(soc, R16::DE)},
         0x14 => {inc_r8(soc, R8::D)},
@@ -432,15 +427,15 @@ fn process_by_step(soc: &mut SoC) {
         0x1D => {dec_r8(soc, R8::E)},
         0x1E => {ld_r8_n8(soc, R8::E, code[1])},
         0x1F => {rra(soc)},
-        0x20 => {jr_cond_e8(soc, COND::NZ, code[1])},
-        0x21 => {ld_r16_n16(soc, R16::HL, b8x2(code[1], code[2]))},
+        0x20 => {jr_cond_e8(soc, COND::NZ, code[1] as i8)},
+        0x21 => {ld_r16_n16(soc, R16::HL, b8x2_le(code[1], code[2]))},
         0x22 => {ld_r16ram_a(soc, R16RAM::HLI)},
         0x23 => {inc_r16(soc, R16::HL)},
         0x24 => {inc_r8(soc, R8::H)},
         0x25 => {dec_r8(soc, R8::H)},
         0x26 => {ld_r8_n8(soc, R8::H, code[1])},
         0x27 => {daa(soc)},
-        0x28 => {jr_cond_e8(soc, COND::Z, code[1])},
+        0x28 => {jr_cond_e8(soc, COND::Z, code[1] as i8)},
         0x29 => {add_hl_r16(soc, R16::HL)},
         0x2A => {ld_a_r16ram(soc, R16RAM::HLI)},
         0x2B => {dec_r16(soc, R16::HL)},
@@ -448,15 +443,15 @@ fn process_by_step(soc: &mut SoC) {
         0x2D => {dec_r8(soc, R8::L)},
         0x2E => {ld_r8_n8(soc, R8::L, code[1])},
         0x2F => {cpl(soc)},
-        0x30 => {jr_cond_e8(soc, COND::NC, code[1])},
-        0x31 => {ld_r16_n16(soc, R16::SP, b8x2(code[1], code[2]))},
+        0x30 => {jr_cond_e8(soc, COND::NC, code[1] as i8)},
+        0x31 => {ld_r16_n16(soc, R16::SP, b8x2_le(code[1], code[2]))},
         0x32 => {ld_r16ram_a(soc, R16RAM::HLD)},
         0x33 => {inc_r16(soc, R16::SP)},
         0x34 => {inc_r8(soc, R8::HL)},
         0x35 => {dec_r8(soc, R8::HL)},
         0x36 => {ld_r8_n8(soc, R8::HL, code[1])},
         0x37 => {scf(soc)},
-        0x38 => {jr_cond_e8(soc, COND::C, code[1])},
+        0x38 => {jr_cond_e8(soc, COND::C, code[1] as i8)},
         0x39 => {add_hl_r16(soc, R16::SP)},
         0x3A => {ld_a_r16ram(soc, R16RAM::HLD)},
         0x3B => {dec_r16(soc, R16::SP)},
@@ -921,6 +916,11 @@ fn ex_inst(soc: &mut SoC, sub_code: u16) {
     }
 }
 
+// 注册到模块
+#[pymodule]
+fn simu83(_py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {m.add_class::<SoC>()?; Ok(())}
+
+// ===========================================================
 enum R8 {B, C, D, E, H, L, HL, A}
 enum R16 {BC, DE, HL, SP}
 enum R16STK {BC, DE, HL, AF}
@@ -983,7 +983,6 @@ fn set_r8_by_idx(soc: &mut SoC, r8: &R8, r8_value: u8) {
 // ===========================================================
 // 其他辅助函数
 fn b8x2_le(b8a: u16, b8b: u16) -> u16 {(b8b << 8) + b8a}
-fn b8x2(b8a: u16, b8b: u16) -> u16 {(b8a << 8) + b8b}
 
 // ld_r16ram_a
 fn ld_r16ram_a(soc: &mut SoC, r16ram: R16RAM) {
@@ -1136,10 +1135,10 @@ fn ret_cond(soc: &mut SoC, cond: COND) {
 }
 // pop_r16stk
 fn pop_r16stk(soc: &mut SoC, r16stk: R16STK) {
+    soc.set_sp(soc.get_sp() + 1);
     let lo8 = soc.ram_read(soc.get_sp());
-    if soc.get_sp() != 0xfffe {soc.set_sp(soc.get_sp() + 1);};
+    soc.set_sp(soc.get_sp() + 1);
     let hi8 = soc.ram_read(soc.get_sp());
-    if soc.get_sp() != 0xfffe {soc.set_sp(soc.get_sp() + 1);};
     let new_r16 = lo8 as u16 + ((hi8 as u16) << 8);
     match r16stk {
         R16STK::BC => {soc.set_r16(0, new_r16);},
@@ -1154,10 +1153,10 @@ fn push_r16stk(soc: &mut SoC, r16stk: R16STK) {
     let new_r16 = get_r16stk_by_idx(soc, r16stk);
     let hi8 = (new_r16 >> 8) as u8;
     let lo8 = new_r16 as u8;
-    if soc.get_sp() != 0xfffe {soc.set_sp(soc.get_sp() - 1);}
     soc.ram_write(soc.get_sp(), hi8);
-    if soc.get_sp() != 0xfffe {soc.set_sp(soc.get_sp() - 1);}
+    soc.set_sp(soc.get_sp() - 1);
     soc.ram_write(soc.get_sp(), lo8);
+    soc.set_sp(soc.get_sp() - 1);
     soc.cyc_inc(4);
     soc.pc_inc(1);
 }
@@ -1174,10 +1173,10 @@ fn ld_r8_n8(soc: &mut SoC, r8: R8, n8: u16) {
     if r8 as u8 == 6 {soc.cyc_inc(3)} else {soc.cyc_inc(2);};
 }
 // jr_cond_e8
-fn jr_cond_e8(soc: &mut SoC, cond: COND, e8: u16) {
-    let e8 = e8 as i8;
+fn jr_cond_e8(soc: &mut SoC, cond: COND, e8: i8) {
+    let res = ((soc.get_pc() + 2) as i32 + e8 as i32)as u16;
     if get_cond_by_idx(soc, cond) == true {
-        if e8 > 0 {soc.pc_inc(e8 as u16);} else {soc.pc_dec(-e8 as u16);};
+        soc.set_pc(res);
         soc.cyc_inc(3);
     } else {
         soc.pc_inc(2);
@@ -1445,7 +1444,7 @@ fn ld_sp_hl(soc: &mut SoC) {
 }
 // jr_e8
 fn jr_e8(soc: &mut SoC, e8: i8) {
-    let res = (soc.get_pc() as i32 + e8 as i32)as u16;
+    let res = ((soc.get_pc() + 2) as i32  + e8 as i32)as u16;
     soc.set_pc(res);
     soc.cyc_inc(3);
 }

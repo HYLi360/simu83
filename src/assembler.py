@@ -1,3 +1,8 @@
+"""
+A simple assembler for SM83, which powers the Nintendo(R) handhold console GAME BOY(TM).
+"""
+
+
 import argparse
 import re
 
@@ -18,8 +23,6 @@ def transformer(open_file_name: str):
 		"RETI": 217,
 		"DI": 243,
 		"EI": 251,
-	}
-	l1 = {
 		"JP HL": 233,
 		"LDH [C], A": 226,
 		"LDH A, [C]": 242,
@@ -93,8 +96,6 @@ def transformer(open_file_name: str):
 	for new_line in inst_list:
 		if new_line in l0:
 			res = res + bytes([l0[new_line]])
-		elif new_line in l1:
-			res = res + bytes([l1[new_line]])
 		else:
 			ld_r16ram_a = re.search(pattern_ld_r16ram_a, new_line)
 			if ld_r16ram_a is not None:
@@ -292,7 +293,7 @@ def writer(open_file_name: str, write_file_name: str):
 		f2.write(res)
 
 def main():
-	parser = argparse.ArgumentParser(description="a simple assembler for SM83.")
+	parser = argparse.ArgumentParser(description="A simple assembler for SM83.")
 
 	parser.add_argument('--input', required=True, help='input .asm file name')
 	parser.add_argument('--output', required=True, help='output binary file name')
@@ -300,7 +301,6 @@ def main():
 	args = parser.parse_args()
 
 	writer(open_file_name=args.input, write_file_name=args.output)
-
 
 if __name__ == "__main__":
 	main()

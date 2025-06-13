@@ -6,5 +6,5 @@ rom_reader.py
 def reader_gb(file_name: str):
 	"""get hex-list of *.gb (or ROM)"""
 	with open(file_name, "rb") as f:
-		rom = tuple([int(c) for c in f.read()])
+		rom = [int(c) for c in f.read()]
 		return rom
